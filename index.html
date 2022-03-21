@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.6.0/mapbox-gl.css' rel='stylesheet' />
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
+<link rel="stylesheet" href="./style.css">
+    <title>BC Map Demo</title>
+</head>
+<body>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+
+    <div class="load-overlay"><div><img src="./img/logos/logo_light.png" alt="BC Housing Logo"><img src="./img/BCH-loading.gif" alt="Loading animation"></div></div>
+
+    <div class="sidebar">
+      <div class="heading">
+        <div class="logo-ctn">
+          <img class="bch-logo" src="./img/logos/logo_light.png" alt="BC Housing Logo">
+        </div>
+        <h1>Housing Projects Across BC</h1>
+        <form>
+        <input type="text" placeholder="Search Housing Projects" name="search">
+        <label for="region-selct">Region:</label>
+        <select name="region-selector" id="region-selct">
+          <option>All</option>
+          <option data-region="fraser">Fraser</option>
+          <option data-region="northern">Northern</option>
+          <option data-region="interior">Interior</option>
+          <option data-region="vancouver coastal">Vancouver Coastal</option>
+          <option data-region="vancouver island">Vancouver Island</option>
+         </select> 
+         <label for="client-selct">Clients Served:</label>
+         <select name="client-selector" id="client-selct">
+           <option>All</option>
+           <option data-client="middle-income">Middle-income </option>
+           <option data-client="low- to moderate-income">Low- to moderate-income</option>
+           <option data-client="very low-income">Very low-income</option>
+           <option data-client="students">Students</option>       
+          </select> 
+        <label for="fund-selct">Funding Program:</label>
+        <select name="fund-selector" id="fund-selct">
+          <option>All</option>
+          <option data-fund="affordable rental housing">Affordable Rental Housing Program</option>
+          <option data-fund="columbia basin trust">Columbia Basin Trust</option>
+          <option data-fund="community housing fund">Community Housing Fund</option>
+          <option data-fund="deepening affordability fund">Deepening Affordability Fund</option>
+          <option data-fund="housinghub">HousingHub</option>
+          <option data-fund="indigenous housing fund">Indigenous Housing Fund</option>
+          <option data-fund="rapid response to homelessness">Rapid Response to Homelessness</option>
+          <option data-fund="regional housing first">Regional Housing First Program</option>
+          <option data-fund="student housing loan program">Student Housing Loan Program</option>
+          <option data-fund="supportive housing fund">Supportive Housing Fund</option>
+         </select>
+         <div class="reset-ctn">
+         <button id="reset-btn">Reset</button>
+        </div> 
+        </form>
+      </div>
+      <div id="listings" class="listings">
+  
+      </div>
+  </div>
+
+
+
+  <nav id="info-menu">
+    <div class="info-ctn">
+      <span>Displaying</span>
+    <div class="summary-data-ctn"> 
+      <div>
+        <span id="projects-total" class="totals"></span>
+        <span>Projects</span>
+      </div>
+    </div>
+    <div class="summary-data-ctn"> 
+      <div>
+        <span id="homes-total" class="totals"></span>
+        <span>Homes</span>
+      </div>
+    </div>
+  </div>
+    <div class="control-ctn">
+    <a id="cluster-btn" href="#" class="active"><img src="./img/icons/chart-pie-solid.svg" alt=""></a>
+    <a id="cluster-btn" href="#" class="active"><img src="./img/icons/map-pin-solid.svg" alt=""></a>
+  </div>
+  </nav>
+
+
+
+  <aside>
+    <h2 class="green">Welcome to Homes for BC Map</h2>
+    <p>The B.C. government is making progress on building the homes that people need, with more than 32,000 new homes completed or underway in communities throughout the province. <strong>You can use the map to explore current housing projects across BC.</strong></p><br>
+    <h3>For more information on BC Housing's projects, visit:</h3>
+    <ul>
+        <li><a href="#">BC Housing Newsroom</a> - for latest news on BC Housing Projects</li>
+        <li><a href="#">Let's Talk Housing BC</a> - for updates and community engagement related to projects</li>    
+    </ul>
+    <div class="shadow-wrap"><div class="info-dec"><div><img src="./img/icons/circle-xmark-solid.svg" alt=""></div></div></div>
+  </aside>
+   
+
+  
+  <div id="map" class="map"></div>
+ 
+    
+ <script src="./app.js"></script> 
+</body>
+</html>
