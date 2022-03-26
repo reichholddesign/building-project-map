@@ -68,8 +68,19 @@
 
 
   <nav id="info-panel">
+    <div class="control-ctn">
+
+        <div>
+            <img src="./img/icons/map-pin-solid.svg" alt="">
+            <select name="marker-select" id="marker-select">
+              <option value="default" selected>Hide overlaps</option>
+              <option value="overlap">Show all</option>
+              <option value="cluster">Cluster</option>
+            </select>
+        </div>
+    </div>
     <div class="info-ctn">
-      <span>Displaying</span>
+      <span class="info-title">Displaying</span>
     <div class="summary-data-ctn"> 
         <span id="projects-total"></span>
         <span>Projects</span>
@@ -78,11 +89,13 @@
         <span id="homes-total"></span>
         <span>Homes</span>
     </div>
+    <div class="summary-data-ctn">
+      <a id="data-btn" href="#" class="active"><img src="./img/icons/chart-pie-solid.svg" alt=""></a>
+      <span>More info</span>
+    </div>
   </div>
-    <div class="control-ctn">
-    <a id="cluster-btn" href="#" class="active"><img src="./img/icons/chart-pie-solid.svg" alt=""></a>
-    <a id="cluster-btn" href="#" class="active"><img src="./img/icons/map-pin-solid.svg" alt=""></a>
-  </div>
+  
+
   </nav>
 
 

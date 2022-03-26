@@ -10,7 +10,8 @@ const searchbox = document.querySelector('input[name="search"]');
 const resetBtn = document.querySelector("#reset-btn");
 
 // Info panel (top right) elements
-const clusterBtn = document.querySelector("#cluster-btn");
+const markerSelect = document.querySelector("#marker-select");
+const dataBtn = document.querySelector("#data-btn");
 let clusterView = false;
 
 // Map elements
@@ -103,7 +104,7 @@ const colors = [
   "rgba(99, 105, 209, 1)",
   "rgba(239, 71, 111, 1)",
   "rgba(66, 217, 200, 1)",
-  "rgba(255, 238, 242, 1)",
+  "rgba(214, 179, 187, 1)",
   "rgb(159, 61, 149)",
   "rgba(251, 175, 0, 1)",
   "rgba(194, 232, 18, 1)",
@@ -139,7 +140,14 @@ map.on("load", () => {
       // clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
     });
     
-    function loadMarkers(layoutObj){
+    // Load map marker image
+    map.loadImage('./img/icons/house.png', (error, image) => {
+      if (error) {
+        throw error;
+      }
+      map.addImage('house-icon', image, { sdf: true });
+    });
+    
     for (const feature of projects.features) {
       const name = cleanInput(feature.properties.name);
       const layerID = name;
@@ -150,44 +158,45 @@ map.on("load", () => {
           id: layerID,
           type: "symbol",
           source: "places",
-          layout: layoutObj,
+          layout: {
+            'icon-image': 'house-icon',
+            'icon-size': 0.5,
+            // "icon-image": "accessible",
+            "icon-allow-overlap": false,
+          },
           filter: ["==", "searchName", name],
-          // paint: {
-          //   'icon-halo-width': 5,
-          //   'icon-halo-color': 'white',   
-          // },
+          paint: {
+            'icon-color': [
+            'match', 
+            ['get', 'fundingProgram'], 
+            fund1[2],
+            colors[0],
+            fund2[2],
+            colors[1],
+            fund3[2],
+            colors[2],
+            fund4[2],
+            colors[3],
+            fund5[2],
+            colors[4],
+            fund6[2],
+            colors[5],
+            fund7[2],
+            colors[6],
+            fund8[2],
+            colors[7],
+            fund9[2],
+            colors[8],
+            fund10[2],
+            colors[9],
+            '#FF0000' // any other store type
+            ]
+            },
         });
         layerIDs.push(layerID);
       }
     }
 
-       // Load map marker image
-       map.loadImage('./img/icons/house.png', (error, image) => {
-        if (error) {
-          throw error;
-        }
-        map.addImage('house-icon', image, { sdf: false });
-      });
-    }
-
-    const defaulLayoutObj = {
-      "icon-image": [
-        "match",
-        ["get", "fundingProgram"],
-        "Affordable Rental Housing",
-        "house-icon",
-        // 'Columbia Basin Trust',
-        // 'red-icon',
-        // 'Community Housing Fund',
-        // 'green-icon',
-        "house-icon",
-      ],
-      "icon-size": 0.5,
-
-      // "icon-image": "accessible",
-      "icon-allow-overlap": false,
-    }
-    loadMarkers(defaulLayoutObj);
   
     // Once map objects are loaded, hide loading overlay and display map elemts 
     if (layerIDs) {
@@ -454,12 +463,9 @@ map.on("load", () => {
 }
 
 // after the GeoJSON data is loaded, update markers on the screen on every frame
-// map.on("render", () => {
-//   if (!map.isSourceLoaded("clustered-places")) return;
-//   updateMarkers();
-// });
 
-function loadSecondarySource(){
+
+// function loadSecondarySource(){
   map.addSource("clustered-places", {
     type: "geojson",
     data: projects,
@@ -480,10 +486,29 @@ function loadSecondarySource(){
     },
   });
 
+  // map.getSource("places").setData({
+  //   cluster: true,
+  //   clusterRadius: 80,
+  //   clusterProperties: {
+  //     // keep separate counts for each magnitude category in a cluster
+  //     fund1: ["+", ["case", fund1, 1, 0]],
+  //     fund2: ["+", ["case", fund2, 1, 0]],
+  //     fund3: ["+", ["case", fund3, 1, 0]],
+  //     fund4: ["+", ["case", fund4, 1, 0]],
+  //     fund5: ["+", ["case", fund5, 1, 0]],
+  //     fund6: ["+", ["case", fund6, 1, 0]],
+  //     fund7: ["+", ["case", fund7, 1, 0]],
+  //     fund8: ["+", ["case", fund8, 1, 0]],
+  //     fund9: ["+", ["case", fund9, 1, 0]],
+  //     fund10: ["+", ["case", fund10, 1, 0]],
+  //   },
+  // });
+
   map.addLayer({
     id: "clusters",
     type: "circle",
     source: "clustered-places",
+    // source: "places",
     layout: {
       // Make the layer visible by default.
       visibility: "none",
@@ -535,14 +560,19 @@ function loadSecondarySource(){
       "circle-stroke-color": "#fff",
     },
   });
-}
+
+  map.on("render", () => {
+    if (!map.isSourceLoaded("clustered-places")) return;
+    updateMarkers();
+  });
 
 
-function displayClusters(e, layerIDs) {
-  e.preventDefault();
-  e.stopPropagation();
+// }
 
-  loadSecondarySource();
+
+function layerControl(layerIDs) {
+
+  // loadSecondarySource();
 
   if (clusterView === false) {
     clusterView = true;
@@ -551,7 +581,7 @@ function displayClusters(e, layerIDs) {
     }
     map.setLayoutProperty("clusters", "visibility", "visible");
     map.setLayoutProperty("unclustered-point", "visibility", "visible");
-    clusterBtn.textContent = "Uncluster";
+    dataBtn.textContent = "Uncluster";
   } else {
     clusterView = false;
     for (const layerID of layerIDs) {
@@ -559,13 +589,41 @@ function displayClusters(e, layerIDs) {
     }
     map.setLayoutProperty("clusters", "visibility", "none");
     map.setLayoutProperty("unclustered-point", "visibility", "none");
-    clusterBtn.textContent = "Cluster";
+    dataBtn.textContent = "Cluster";
   }
 }
 
+
+
+function setMarkerOverlap(overlapBool) {
+  if (clusterView === false) {
+
+  }  
+  for (const feature of projects.features) {
+    const name = cleanInput(feature.properties.name);
+    const layerID = name;
+  map.setLayoutProperty(layerID, "icon-allow-overlap", overlapBool);
+  }
+  
+}
+
 // clustering toggle
-clusterBtn.addEventListener("click", function (e) {
-  displayClusters(e, layerIDs);
+markerSelect.addEventListener("change", function (e) {
+  const markerVal = markerSelect.value
+  if(markerVal === "overlap"){
+    if(clusterView === true){
+      layerControl(layerIDs);
+    }
+    setMarkerOverlap(true);
+  } else if(markerVal === "default"){
+    if(clusterView === true){
+      layerControl(layerIDs);
+    }
+    setMarkerOverlap(false);
+
+  } else if(markerVal === "cluster"){
+    layerControl(layerIDs);
+  }
 });
 
     // // inspect a cluster on click
@@ -712,3 +770,25 @@ clusterBtn.addEventListener("click", function (e) {
     }" fill="${color}" />`;
   }
 });
+
+
+
+
+// object for change markers image depending on property
+
+// const defaulLayoutObj = {
+//   "icon-image": [
+//     "match",
+//     ["get", "fundingProgram"],
+//     "Affordable Rental Housing",
+//     "house-icon",
+//     // 'Columbia Basin Trust',
+//     // 'red-icon',
+//     // 'Community Housing Fund',
+//     // 'green-icon',
+//     "house-icon",
+//   ],
+//   "icon-size": 0.5,
+//   // "icon-image": "accessible",
+//   "icon-allow-overlap": false,
+// }
