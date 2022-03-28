@@ -24,7 +24,8 @@ const layerIDs = []; // This array will contain a list used to filter against
 // Init map
 const map = new mapboxgl.Map({
   container: "map",
-  style: "mapbox://styles/mapbox/light-v10",
+  // style: "mapbox://styles/mapbox/light-v10",
+  style: "mapbox://styles/jackreich/ckvyr4zh76wqr14ld7ws27htf",
   center: [-127.647621, 53.726669], // starting position [lng, lat]
   zoom: 5, // starting zoom
 });
@@ -79,7 +80,7 @@ const fund7 = [
 const fund8 = [
   "match",
   ["get", "fundingProgram"],
-  "Regional Housing First Program",
+  "Regional Housing First ",
   true,
   false,
 ];
@@ -100,7 +101,7 @@ const fund10 = [
 
 // colors to use for the categories
 const colors = [
-  "rgba(0, 112, 95, 1)",
+  "rgba(206, 21, 21, 1)",
   "rgba(99, 105, 209, 1)",
   "rgba(239, 71, 111, 1)",
   "rgba(66, 217, 200, 1)",
@@ -162,7 +163,8 @@ map.on("load", () => {
             'icon-image': 'house-icon',
             'icon-size': 0.5,
             // "icon-image": "accessible",
-            "icon-allow-overlap": false,
+            "icon-allow-overlap": true,
+            "visibility": 'visible',
           },
           filter: ["==", "searchName", name],
           paint: {
@@ -228,6 +230,9 @@ map.on("load", () => {
      * Add a listing for each project to the sidebar.
      **/
     function buildSearchResult(matchList) {
+      // save marker properties for retrival when building graphs
+      sessionStorage.setItem('search-data', JSON.stringify(matchList));
+
       let getListContainer = document.querySelector("#listings");
       if (getListContainer) {
         getListContainer.remove();
@@ -355,7 +360,41 @@ map.on("load", () => {
       link.className = "title";
       //   link.dataset.fund = `${project.properties.fundingProgram}`
       link.id = `link-${project.properties.id}`;
-      link.innerHTML = `<h3>${project.properties.name}</h3><p class="black">${project.properties.fundingProgram}</p>`;
+      let bgColor = "";
+      switch (project.properties.fundingProgram) {
+        case fund1[2]:
+          bgColor = colors[0];
+          break;
+        case fund2[2]:
+          bgColor = colors[1];
+          break;
+        case fund3[2]:
+          bgColor = colors[2];
+          break;
+        case fund4[2]:
+          bgColor = colors[3];
+          break;
+        case fund5[2]:
+          bgColor = colors[4];
+          break;
+        case fund6[2]:
+          bgColor = colors[5];
+          break;
+        case fund7[2]:
+          bgColor = colors[6];
+          break;
+        case fund8[2]:
+          bgColor = colors[7];
+          break;
+        case fund9[2]:
+          bgColor = colors[8];
+          break;
+        case fund10[2]:
+          bgColor = colors[9];
+          break;       
+      }
+    
+      link.innerHTML = `<h3>${project.properties.name}</h3><div class="fund-ctn"><div class="fund-colour" style="background:${bgColor}"></div> <p class="black">${project.properties.fundingProgram}</p></div`;
 
       /* Add details to the individual listing. */
       //   const details = listing.appendChild(document.createElement('div'));
@@ -384,6 +423,22 @@ map.on("load", () => {
         }
         this.parentNode.classList.add("active");
       });
+      // link.addEventListener("mouseover", function () {
+      //   for (const feature of projects.features) {
+      //     if (this.id === `link-${feature.properties.id}`) {
+      //       let layerName = cleanInput(feature.properties.name);
+      //     }
+      //   }     
+      // });
+      // link.addEventListener("mouseout", function () {
+      //   for (const feature of projects.features) {
+      //     if (this.id === `link-${feature.properties.id}`) {
+      //       let layerName = cleanInput(feature.properties.name);
+      //       map.setLayoutProperty(layerName, "icon-size", 0.5);  
+      //     }
+      //   }     
+      // });
+
     }
 
     const fundSelct = document.querySelector("#fund-selct");
@@ -430,6 +485,37 @@ map.on("load", () => {
       getSearchParams();
     }
 
+
+    
+  /**
+   * Use Mapbox GL JS's `flyTo` to move the camera smoothly
+   * a given center point.
+   **/
+  function flyToproject(currentFeature) {
+    if (map.getZoom() < 11) {
+      map.flyTo({
+        center: currentFeature.geometry.coordinates,
+        zoom: 11,
+      });
+    } else {
+      map.flyTo({
+        center: currentFeature.geometry.coordinates,
+      });
+    }
+  }
+
+  function createPopUp(currentFeature) {
+    const popUps = document.getElementsByClassName("mapboxgl-popup");
+    if (popUps[0]) popUps[0].remove();
+    const popup = new mapboxgl.Popup({ closeOnClick: true })
+      .setLngLat(currentFeature.geometry.coordinates)
+      .setHTML(
+        `<div class="pop-title-ctn"><h3>${currentFeature.properties.name}</h3></div><div class="pop-img-ctn"><img class="pop-img" src="./img/500-robert-nicklin-place.jpg"><div class="pop-home-ctn"><div><span class="home-num">${currentFeature.properties.numHomes}</span><span>Homes</span></div></div></div><div class="pop-location-ctn"><h4><span class="green">Address:</span><br>${currentFeature.properties.address}</h4><h4><span class="green">Region:</span><br>${currentFeature.properties.region}</h4></div><h4><span class="green">Funding Program:</span><br>${currentFeature.properties.fundingProgram}</h4><h4><span class="green">Housing Operator:</span><br>${currentFeature.properties.housingOperator}</h4><h4><span class="green">Clients Served:</span><br>${currentFeature.properties.clientsServed}</h4>`
+      )
+      .addTo(map);
+  }
+
+
  /******  START of clustering layer ********/
 
  function updateMarkers() {
@@ -463,9 +549,6 @@ map.on("load", () => {
 }
 
 // after the GeoJSON data is loaded, update markers on the screen on every frame
-
-
-// function loadSecondarySource(){
   map.addSource("clustered-places", {
     type: "geojson",
     data: projects,
@@ -486,23 +569,6 @@ map.on("load", () => {
     },
   });
 
-  // map.getSource("places").setData({
-  //   cluster: true,
-  //   clusterRadius: 80,
-  //   clusterProperties: {
-  //     // keep separate counts for each magnitude category in a cluster
-  //     fund1: ["+", ["case", fund1, 1, 0]],
-  //     fund2: ["+", ["case", fund2, 1, 0]],
-  //     fund3: ["+", ["case", fund3, 1, 0]],
-  //     fund4: ["+", ["case", fund4, 1, 0]],
-  //     fund5: ["+", ["case", fund5, 1, 0]],
-  //     fund6: ["+", ["case", fund6, 1, 0]],
-  //     fund7: ["+", ["case", fund7, 1, 0]],
-  //     fund8: ["+", ["case", fund8, 1, 0]],
-  //     fund9: ["+", ["case", fund9, 1, 0]],
-  //     fund10: ["+", ["case", fund10, 1, 0]],
-  //   },
-  // });
 
   map.addLayer({
     id: "clusters",
@@ -567,12 +633,8 @@ map.on("load", () => {
   });
 
 
-// }
-
 
 function layerControl(layerIDs) {
-
-  // loadSecondarySource();
 
   if (clusterView === false) {
     clusterView = true;
@@ -581,7 +643,6 @@ function layerControl(layerIDs) {
     }
     map.setLayoutProperty("clusters", "visibility", "visible");
     map.setLayoutProperty("unclustered-point", "visibility", "visible");
-    dataBtn.textContent = "Uncluster";
   } else {
     clusterView = false;
     for (const layerID of layerIDs) {
@@ -589,16 +650,16 @@ function layerControl(layerIDs) {
     }
     map.setLayoutProperty("clusters", "visibility", "none");
     map.setLayoutProperty("unclustered-point", "visibility", "none");
-    dataBtn.textContent = "Cluster";
   }
 }
 
 
+function showHideSidebar(bool){
+(bool) ? getSidebar.style.transform = "translateX(-100%)" : getSidebar.style.transform = "translateX(0)"
+}
+
 
 function setMarkerOverlap(overlapBool) {
-  if (clusterView === false) {
-
-  }  
   for (const feature of projects.features) {
     const name = cleanInput(feature.properties.name);
     const layerID = name;
@@ -610,95 +671,59 @@ function setMarkerOverlap(overlapBool) {
 // clustering toggle
 markerSelect.addEventListener("change", function (e) {
   const markerVal = markerSelect.value
-  if(markerVal === "overlap"){
+  const disabledSidebar = document.querySelector(".disabled-sidebar");
+  if(markerVal === "all"){
     if(clusterView === true){
       layerControl(layerIDs);
+      showHideSidebar(false);
     }
     setMarkerOverlap(true);
-  } else if(markerVal === "default"){
+  } else if(markerVal === "hide"){
     if(clusterView === true){
       layerControl(layerIDs);
+      showHideSidebar(false);
     }
     setMarkerOverlap(false);
 
   } else if(markerVal === "cluster"){
     layerControl(layerIDs);
+    showHideSidebar(true);
+
   }
 });
-
-    // // inspect a cluster on click
-    map.on("click", "clusters", (e) => {
-      const features = map.queryRenderedFeatures(e.point, {
-        layers: ["clusters"],
-      });
-      const clusterId = features[0].properties.cluster_id;
-      map
-        .getSource("clustered-places")
-        .getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) return;
-
-          map.easeTo({
-            center: features[0].geometry.coordinates,
-            zoom: zoom,
-          });
-        });
-    });
 
 
 
     // When a click event occurs on a feature in
-    // the unclustered-point layer, open a popup at
+    // the default layer, open a popup at
     // the location of the feature, with
     // description HTML from its properties.
     map.on("click", layerIDs, (e) => {
       createPopUp(e.features[0]);
       flyToproject(e.features[0]);
     });
-
+  
     map.on("mouseenter", layerIDs, () => {
       map.getCanvas().style.cursor = "pointer";
     });
     map.on("mouseleave", layerIDs, () => {
       map.getCanvas().style.cursor = "";
     });
+
+    // interactions for unclustered-point layer
+
+    map.on("click", "unclustered-point", (e) => {
+      createPopUp(e.features[0]);
+      flyToproject(e.features[0]);
+    });
+
     map.on("mouseenter", "unclustered-point", () => {
       map.getCanvas().style.cursor = "pointer";
     });
     map.on("mouseleave", "unclustered-point", () => {
-      map.getCanvas().style.cursor = "pointer";
+      map.getCanvas().style.cursor = "";
     });
   });
-
-  
-/******   End of clustering layer ********/
-
-  /**
-   * Use Mapbox GL JS's `flyTo` to move the camera smoothly
-   * a given center point.
-   **/
-  function flyToproject(currentFeature) {
-    if (map.getZoom() < 11) {
-      map.flyTo({
-        center: currentFeature.geometry.coordinates,
-        zoom: 11,
-      });
-    } else {
-      map.flyTo({
-        center: currentFeature.geometry.coordinates,
-      });
-    }
-  }
-
-  function createPopUp(currentFeature) {
-    const popUps = document.getElementsByClassName("mapboxgl-popup");
-    if (popUps[0]) popUps[0].remove();
-    const popup = new mapboxgl.Popup({ closeOnClick: true })
-      .setLngLat(currentFeature.geometry.coordinates)
-      .setHTML(
-        `<div class="pop-title-ctn"><h3>${currentFeature.properties.name}</h3></div><div class="pop-img-ctn"><img class="pop-img" src="./img/500-robert-nicklin-place.jpg"><div class="pop-home-ctn"><div><span class="home-num">${currentFeature.properties.numHomes}</span><span>Homes</span></div></div></div><div class="pop-location-ctn"><h4><span class="green">Address:</span><br>${currentFeature.properties.address}</h4><h4><span class="green">Region:</span><br>${currentFeature.properties.region}</h4></div><h4><span class="green">Funding Program:</span><br>${currentFeature.properties.fundingProgram}</h4><h4><span class="green">Housing Operator:</span><br>${currentFeature.properties.housingOperator}</h4><h4><span class="green">Clients Served:</span><br>${currentFeature.properties.clientsServed}</h4>`
-      )
-      .addTo(map);
-  }
 
   // code for creating an SVG donut chart from feature properties
   function createDonutChart(props) {
@@ -769,7 +794,154 @@ markerSelect.addEventListener("change", function (e) {
       r + r0 * y0
     }" fill="${color}" />`;
   }
+
+/******   End of clustering layer ********/
+
+
+/******   Start of data display ********/
+
+dataBtn.addEventListener("click", () => {
+const mapData = JSON.parse(sessionStorage.getItem('search-data'))
+
+function cleandata(str){
+return str.toLowerCase().toLowerCase().replace(/ /g,'')
+}
+
+let funds = {
+"affordablerentalhousing" : 0,
+"columbiabasintrust" : 0,
+"communityhousingfund" : 0,
+"deepeningaffordabilityfund" : 0,
+"housinghub" : 0,
+"indigenoushousingfund" : 0,
+"rapidresponsetohomelessness" : 0,
+"regionalhousingfirst" : 0,
+"studenthousingloanprogram" : 0,
+"supportivehousingfund" : 0,
+}
+let clients = {
+  "middle-income" : 0,
+  "low-tomoderate-income" : 0,
+  "verylow-income" : 0,
+  "students" : 0,
+}
+
+let homes = {
+"0-20": 0,
+"21-40": 0,
+"41-60": 0,
+"60+": 0,
+}
+fundingCount = [];
+clientCount = [];
+homeCount = [];
+
+mapData.forEach((project, i) => {
+fundingCount.push(cleandata(project.properties.fundingProgram));
+clientCount.push(cleandata(project.properties.clientsServed));
+homeCount.push(cleandata(project.properties.numHomes));
+})
+
+// Count totals in funds
+fundingCount.forEach(el =>{
+  for(fund in funds){
+    if(fund === el){
+     funds[fund] += 1;
+    }
+  }
+})
+// Count totals in funds
+clientCount.forEach(el =>{
+  for(client in clients){
+    if(client === el){
+     clients[client] += 1;
+    }
+  }
+})
+// Count totals in funds
+homeCount.forEach(el =>{
+  const val = parseInt(el);
+  if(val <= 20){
+    homes["0-20"] +=1;
+  } 
+  else if(el > 20 && el <= 40){
+    homes["21-40"] +=1;
+  } else if(el > 40 && el <= 60){
+    homes["41-60"] +=1;
+  } else{
+    homes["60+"] +=1;
+  }
+})
+
+
+
+// Fund Chart
+
+Chart.defaults.color = "white";
+const labels = [
+  'Affordable Rental Housing',
+  'Columbia Basin Trust',
+  'Community Housing Fund',
+  'Deepening Affordability Fund',
+  'HousingHub',
+  'Indigenous Housing Fund',
+  'Rapid Response to Homelessness',
+  'Regional Housing First',
+  'Student Housing Loan Program',
+  'Supportive Housing Fund',
+];
+
+
+const data = {
+  labels: labels,
+  datasets: [{
+    label: 'Fund breakdown',
+    backgroundColor: '#fff',
+    backgroundColor: [
+      colors[0],
+      colors[1],
+      colors[2],
+      colors[3],
+      colors[4],
+      colors[5],
+      colors[6],
+      colors[7],
+      colors[8],
+      colors[9],
+
+    ],
+    data: [funds['affordablerentalhousing'], funds['columbiabasintrust'],funds['communityhousingfund'],funds['deepeningaffordabilityfund'],funds['housinghub'],funds['indigenoushousingfund'],funds['rapidresponsetohomelessness'],funds['regionalhousingfirst'],funds['studenthousingloanprogram'],funds['supportivehousingfund'], ],
+  }]
+};
+
+const config = {
+  type: 'pie',
+  data: data,
+  options: {
+  },
+};
+
+const myChart = new Chart(
+  document.getElementById('myChart'),
+  config
+);
+
+
+
+
+}) /******   end of data display ********/
+
+
+
+
+
+
+
+
+
+
 });
+
 
 
 

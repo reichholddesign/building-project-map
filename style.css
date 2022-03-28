@@ -64,15 +64,20 @@ align-items: center;
     overflow: hidden;
     border-right: 1px solid rgba(0, 0, 0, 0.25);
     /* transition: opacity 1s ease; */
+    z-index: 1;
+    background: white;
+    transform: translateX(0);
+    transition: all 1s ease-in-out;
   }
 
   .map {
     position: absolute;
-    left: 33.3333%;
-    width: 66.6666%;
+    /* left: 33.3333%; */
+    width: 100%;
     top: 0;
     bottom: 0;
     opacity: 0;
+    z-index: 0;
     /* transition: opacity 1s ease; */
   }
 
@@ -97,6 +102,7 @@ align-items: center;
   a:hover {
     color: #101010;
   }
+
 
   .heading {
     background: #fff;
@@ -140,6 +146,19 @@ align-items: center;
   .listings .item .title small {
     font-weight: 400;
   }
+
+  .fund-ctn{
+    display: flex;
+    align-items: center;
+    gap:4px
+  }
+
+  .fund-colour{
+    width:10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
   .listings .item.active .title,
   .listings .item .title:hover {
     color: #12ac91;

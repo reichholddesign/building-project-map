@@ -17,6 +17,7 @@
     <div class="load-overlay"><div><img src="./img/logos/logo_light.png" alt="BC Housing Logo"><img src="./img/BCH-loading.gif" alt="Loading animation"></div></div>
 
     <div class="sidebar">
+
       <div class="heading">
         <div class="logo-ctn">
           <img class="bch-logo" src="./img/logos/logo_light.png" alt="BC Housing Logo">
@@ -73,9 +74,9 @@
         <div>
             <img src="./img/icons/map-pin-solid.svg" alt="">
             <select name="marker-select" id="marker-select">
-              <option value="default" selected>Hide overlaps</option>
-              <option value="overlap">Show all</option>
-              <option value="cluster">Cluster</option>
+              <option value="all" selected>Show all</option>
+              <option value="hide" >Hide overlapping</option>
+              <option value="cluster">Cluster (no filters)</option>
             </select>
         </div>
     </div>
@@ -95,7 +96,9 @@
     </div>
   </div>
   
-
+  <div id="data-ctn">
+    <canvas id="myChart"></canvas>
+  </div>
   </nav>
 
 
@@ -115,7 +118,8 @@
   
   <div id="map" class="map"></div>
  
-    
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
  <script src="./app.js"></script> 
+
 </body>
 </html>
