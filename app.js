@@ -878,7 +878,7 @@ homeCount.forEach(el =>{
 // Fund Chart
 
 Chart.defaults.color = "white";
-const labels = [
+const fundLabels = [
   'Affordable Rental Housing',
   'Columbia Basin Trust',
   'Community Housing Fund',
@@ -892,8 +892,8 @@ const labels = [
 ];
 
 
-const data = {
-  labels: labels,
+const fundData = {
+  labels: fundLabels,
   datasets: [{
     label: 'Fund breakdown',
     backgroundColor: '#fff',
@@ -915,17 +915,101 @@ const data = {
 };
 
 const config = {
-  type: 'pie',
-  data: data,
+  type: 'doughnut',
+  data: fundData,
   options: {
+    maintainAspectRatio: false,
   },
 };
 
-const myChart = new Chart(
-  document.getElementById('myChart'),
+const fundChart = new Chart(
+  document.getElementById('fundChart'),
   config
 );
 
+
+// Client Chart
+
+const clientLabels = [
+  'Middle-income',
+  'Low- to moderate-income',
+  'Very low-income',
+  'Students',
+];
+
+
+const clientData = {
+  labels: clientLabels,
+  datasets: [{
+    label: 'Fund breakdown',
+    backgroundColor: '#fff',
+    backgroundColor: [
+      colors[0],
+      colors[1],
+      colors[2],
+      colors[3],
+
+    ],
+    data: [clients['middle-income'], clients['low-tomoderate-income'],clients['verylow-income'],clients['students'], ],
+  }]
+};
+
+const clientConfig = {
+  type: 'doughnut',
+  data: clientData,
+  options: {
+    maintainAspectRatio: false,
+  },
+};
+
+const clientChart = new Chart(
+  document.getElementById('clientChart'),
+  clientConfig
+);
+// Num Homes Chart
+
+const homesLabels = [
+  '1-20',
+  '21-40',
+  '41-60',
+  '60+',
+];
+
+
+const homesData = {
+  labels: homesLabels,
+  datasets: [{
+    label: 'Fund breakdown',
+    backgroundColor: '#fff',
+    backgroundColor: [
+      colors[0],
+      colors[1],
+      colors[2],
+      colors[3],
+
+    ],
+    data: [homes['0-20'], homes['21-40'],homes['41-60'],homes['60+'], ],
+  }]
+};
+
+const homesConfig = {
+  type: 'bar',
+  data: homesData,
+  options: {
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true
+      }
+    }
+  },
+};
+
+const homesChart = new Chart(
+  document.getElementById('homesChart'),
+  homesConfig
+);
+console.log(fundChart);
 
 
 

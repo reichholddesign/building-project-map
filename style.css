@@ -246,6 +246,7 @@ align-items: center;
     font-family: 'Open Sans', sans-serif;
     flex-wrap: wrap;
     color: white;
+    max-width: 40vw;
     }
       
     .control-ctn{
@@ -499,3 +500,17 @@ transition: all 0.3s ease 0.6s;
   cursor: pointer;
 }
 
+/* Charts */
+
+#data-ctn{
+  display: flex;
+  flex-flow: row wrap;
+width: 100%;
+}
+
+.chart-ctn{
+
+  position: relative;
+  width: 50%;
+  height: 200px;
+}
