@@ -14,17 +14,18 @@
 <body>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
 
-    <div class="load-overlay"><div><img src="./img/logos/logo_light.png" alt="BC Housing Logo"><img src="./img/BCH-loading.gif" alt="Loading animation"></div></div>
+    <div class="load-overlay"><div><h1>Housing Projects in BC
+    </h1><img src="./img/BCH-loading.gif" alt="Loading animation"></div></div>
+
+
+
+    
 
     <div class="sidebar">
-
       <div class="heading">
-        <div class="logo-ctn">
-          <img class="bch-logo" src="./img/logos/logo_light.png" alt="BC Housing Logo">
-        </div>
-        <h1>Housing Projects Across BC</h1>
+        <h1>Housing Projects in BC</h1>
         <form>
-        <input type="text" placeholder="Search Housing Projects" name="search">
+        <input type="text" placeholder="Filter Housing Projects" name="search">
         <label for="region-selct">Region:</label>
         <select name="region-selector" id="region-selct">
           <option>All</option>
@@ -70,7 +71,9 @@
 
   <nav id="info-panel">
     <div class="control-ctn">
-
+      <a id="menu-btn">
+        <img src="./img/icons/bars-solid.svg">
+      </a>
         <div>
             <img src="./img/icons/map-pin-solid.svg" alt="">
             <select name="marker-select" id="marker-select">
@@ -81,44 +84,34 @@
         </div>
     </div>
     <div class="info-ctn">
-      <span class="info-title">Displaying</span>
-    <div class="summary-data-ctn"> 
-        <span id="projects-total"></span>
-        <span>Projects</span>
-    </div>
-    <div class="summary-data-ctn"> 
-        <span id="homes-total"></span>
+      <!-- <span class="info-title">Displaying</span> -->
+      <div class="summary-data-ctn"> 
         <span>Homes</span>
+        <span id="homes-total"></span>
+      
     </div>
-    <div class="summary-data-ctn">
+    <div class="summary-data-ctn"> 
+      <span>Projects</span>
+
+        <span id="projects-total"></span>
+    </div>
+    <div class="summary-data-ctn" id="data-btn-ctn">
+      <span>Summary data</span>
       <a id="data-btn" href="#" class="active"><img src="./img/icons/chart-pie-solid.svg" alt=""></a>
-      <span>More info</span>
     </div>
   </div>
   
   <div id="data-ctn">
-    <div class="chart-ctn">
-    <canvas id="fundChart"></canvas>
-  </div>
-  <div class="chart-ctn">
-    <canvas id="clientChart"></canvas>
-    </div>
-    <div class="chart-ctn">
-    <canvas id="homesChart"></canvas>
-  </div>
+
   </div>
   </nav>
 
 
 
   <aside>
-    <h2 class="green">Welcome to Homes for BC Map</h2>
-    <p>The B.C. government is making progress on building the homes that people need, with more than 32,000 new homes completed or underway in communities throughout the province. <strong>You can use the map to explore current housing projects across BC.</strong></p><br>
-    <h3>For more information on BC Housing's projects, visit:</h3>
-    <ul>
-        <li><a href="#">BC Housing Newsroom</a> - for latest news on BC Housing Projects</li>
-        <li><a href="#">Let's Talk Housing BC</a> - for updates and community engagement related to projects</li>    
-    </ul>
+    <h2 class="green">Welcome to Housing Projects in BC Map</h2>
+    <p><strong>****For demo purposes only****</strong></p>
+    <p>This map displays only a snapshot of publicly accessible project data taken from BC Housing's Home for BC map. This data is not maintained. As such, the map and associated data should in no way be treated as accurate representations of BC Housing's work.</p><br>
     <div class="shadow-wrap"><div class="welcome-dec"><div><img src="./img/icons/circle-xmark-solid.svg" alt=""></div></div></div>
   </aside>
    

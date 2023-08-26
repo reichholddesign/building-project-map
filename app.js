@@ -12,7 +12,13 @@ const resetBtn = document.querySelector("#reset-btn");
 // Info panel (top right) elements
 const markerSelect = document.querySelector("#marker-select");
 const dataBtn = document.querySelector("#data-btn");
+const dataBtnCtn = document.querySelector("#data-btn-ctn");
+const dataCtn = document.querySelector("#data-ctn");
 let clusterView = false;
+let chartControl = false;
+
+// mobile elements
+const menuToggleBtn = document.querySelector("#menu-btn")
 
 // Map elements
 const getMap = document.querySelector(".map");
@@ -21,11 +27,12 @@ const welcomeMsgCtn = document.querySelector("aside");
 const welcomeMsgClose = document.querySelector(".welcome-dec img");
 const layerIDs = []; // This array will contain a list used to filter against
 
+
 // Init map
 const map = new mapboxgl.Map({
   container: "map",
-  // style: "mapbox://styles/mapbox/light-v10",
-  style: "mapbox://styles/jackreich/ckvyr4zh76wqr14ld7ws27htf",
+  style: "mapbox://styles/mapbox/light-v10",
+  // style: "mapbox://styles/jackreich/cllrjdr95004801of02o94tmc",
   center: [-127.647621, 53.726669], // starting position [lng, lat]
   zoom: 5, // starting zoom
 });
@@ -136,9 +143,6 @@ map.on("load", () => {
     map.addSource("places", {
       type: "geojson",
       data: projects,
-      // cluster: true,
-      // clusterMaxZoom: 14, // Max zoom to cluster points on
-      // clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
     });
     
     // Load map marker image
@@ -161,7 +165,7 @@ map.on("load", () => {
           source: "places",
           layout: {
             'icon-image': 'house-icon',
-            'icon-size': 0.5,
+            'icon-size': 0.8,
             // "icon-image": "accessible",
             "icon-allow-overlap": true,
             "visibility": 'visible',
@@ -200,32 +204,24 @@ map.on("load", () => {
     }
 
   
-    // Once map objects are loaded, hide loading overlay and display map elemts 
+    // Once map objects are loaded, hide loading overlay and display map elemets 
     if (layerIDs) {
       getSidebar.style.opacity = "1";
       getMap.style.opacity = "1";
       loadOverlay.style.display = "none";
       welcomeMsgCtn.style.transform = "translateY(-500px)";
-
-      // Add event listeners to buttons
-      welcomeMsgClose.addEventListener("click", function () {
-        welcomeMsgCtn.style.display = "none";
-      });
-
-      resetBtn.addEventListener("click", function (e) {
-        resetSearch(e);
-      });
+      welcomeMsgClose.addEventListener("click", function () {welcomeMsgCtn.style.display = "none";});
+      resetBtn.addEventListener("click", function (e) {resetSearch(e);});
     }
-
 
     // objects for caching and keeping track of HTML marker objects (for performance)
     const markers = {};
     let markersOnScreen = {};
+    const sortedHomesArray = projects.features.sort((a, b) =>a.properties.name > b.properties.name ? 1 : -1);
 
-    const sortedHomesArray = projects.features.sort((a, b) =>
-      a.properties.name > b.properties.name ? 1 : -1
-    );
     buildSearchResult(sortedHomesArray);
+    
+    
     /**
      * Add a listing for each project to the sidebar.
      **/
@@ -234,9 +230,7 @@ map.on("load", () => {
       sessionStorage.setItem('search-data', JSON.stringify(matchList));
 
       let getListContainer = document.querySelector("#listings");
-      if (getListContainer) {
-        getListContainer.remove();
-      }
+      if (getListContainer) getListContainer.remove();
       let listDiv = document.createElement("div");
       listDiv.classList.add("listings");
       listDiv.setAttribute("id", "listings");
@@ -244,7 +238,6 @@ map.on("load", () => {
       for (const project of matchList) {
         displayHomesList(project);
       }
-
       // Calculate search result projects & homes totals
       document.querySelector(
         "#projects-total"
@@ -396,25 +389,16 @@ map.on("load", () => {
     
       link.innerHTML = `<h3>${project.properties.name}</h3><div class="fund-ctn"><div class="fund-colour" style="background:${bgColor}"></div> <p class="black">${project.properties.fundingProgram}</p></div`;
 
-      /* Add details to the individual listing. */
-      //   const details = listing.appendChild(document.createElement('div'));
-      //   details.innerHTML = `${project.properties.city}`;
-      //   if (project.properties.phone) {
-      //     details.innerHTML += ` &middot; ${project.properties.phoneFormatted}`;
-      //   }
-
-      /**
-       * Listen to the element and when it is clicked, do four things:
-       * 1. Update the `currentFeature` to the project associated with the clicked link
-       * 2. Fly to the point
-       * 3. Close all other popups and display popup for clicked project
-       * 4. Highlight listing in sidebar (and remove highlight for all other listings)
-       **/
+  
       link.addEventListener("click", function () {
         for (const feature of projects.features) {
           if (this.id === `link-${feature.properties.id}`) {
+            if(window.innerWidth < 769){
+              toggleMobMenu()
+            }
             flyToproject(feature);
             createPopUp(feature);
+           
           }
         }
         const activeItem = document.getElementsByClassName("active");
@@ -423,22 +407,6 @@ map.on("load", () => {
         }
         this.parentNode.classList.add("active");
       });
-      // link.addEventListener("mouseover", function () {
-      //   for (const feature of projects.features) {
-      //     if (this.id === `link-${feature.properties.id}`) {
-      //       let layerName = cleanInput(feature.properties.name);
-      //     }
-      //   }     
-      // });
-      // link.addEventListener("mouseout", function () {
-      //   for (const feature of projects.features) {
-      //     if (this.id === `link-${feature.properties.id}`) {
-      //       let layerName = cleanInput(feature.properties.name);
-      //       map.setLayoutProperty(layerName, "icon-size", 0.5);  
-      //     }
-      //   }     
-      // });
-
     }
 
     const fundSelct = document.querySelector("#fund-selct");
@@ -510,9 +478,12 @@ map.on("load", () => {
     const popup = new mapboxgl.Popup({ closeOnClick: true })
       .setLngLat(currentFeature.geometry.coordinates)
       .setHTML(
-        `<div class="pop-title-ctn"><h3>${currentFeature.properties.name}</h3></div><div class="pop-img-ctn"><img class="pop-img" src="./img/500-robert-nicklin-place.jpg"><div class="pop-home-ctn"><div><span class="home-num">${currentFeature.properties.numHomes}</span><span>Homes</span></div></div></div><div class="pop-location-ctn"><h4><span class="green">Address:</span><br>${currentFeature.properties.address}</h4><h4><span class="green">Region:</span><br>${currentFeature.properties.region}</h4></div><h4><span class="green">Funding Program:</span><br>${currentFeature.properties.fundingProgram}</h4><h4><span class="green">Housing Operator:</span><br>${currentFeature.properties.housingOperator}</h4><h4><span class="green">Clients Served:</span><br>${currentFeature.properties.clientsServed}</h4>`
+        `<div class="pop-title-ctn"><h3>${currentFeature.properties.name}</h3></div><div class="pop-img-ctn"><img class="pop-img" src="./img/500-robert-nicklin-place.jpg"><div class="pop-home-ctn"><div><span class="home-num">${currentFeature.properties.numHomes}</span><span>Homes</span></div></div></div><div class="pop-location-ctn"><h4><span class="green">Address:</span><br>${currentFeature.properties.address}</h4><h4><span class="green">Region:</span><br>${currentFeature.properties.region}</h4></div><h4 class="popup-bottom"><span class="green">Funding Program:</span><br>${currentFeature.properties.fundingProgram}</h4>`
       )
       .addTo(map);
+
+      console.log(currentFeature.geometry.coordinates)
+
   }
 
 
@@ -652,6 +623,17 @@ function layerControl(layerIDs) {
     map.setLayoutProperty("unclustered-point", "visibility", "none");
   }
 }
+
+let menuToggleActive = false;
+
+function toggleMobMenu() {
+  showHideSidebar(menuToggleActive)
+  menuToggleActive = !menuToggleActive
+}
+
+menuToggleBtn.addEventListener("click", ()=>{
+  toggleMobMenu()
+})
 
 
 function showHideSidebar(bool){
@@ -799,252 +781,266 @@ markerSelect.addEventListener("change", function (e) {
 
 
 /******   Start of data display ********/
+function prepChartData(){
+  
+  const mapData = JSON.parse(sessionStorage.getItem('search-data'))
 
-dataBtn.addEventListener("click", () => {
-const mapData = JSON.parse(sessionStorage.getItem('search-data'))
-
-function cleandata(str){
-return str.toLowerCase().toLowerCase().replace(/ /g,'')
-}
-
-let funds = {
-"affordablerentalhousing" : 0,
-"columbiabasintrust" : 0,
-"communityhousingfund" : 0,
-"deepeningaffordabilityfund" : 0,
-"housinghub" : 0,
-"indigenoushousingfund" : 0,
-"rapidresponsetohomelessness" : 0,
-"regionalhousingfirst" : 0,
-"studenthousingloanprogram" : 0,
-"supportivehousingfund" : 0,
-}
-let clients = {
-  "middle-income" : 0,
-  "low-tomoderate-income" : 0,
-  "verylow-income" : 0,
-  "students" : 0,
-}
-
-let homes = {
-"0-20": 0,
-"21-40": 0,
-"41-60": 0,
-"60+": 0,
-}
-fundingCount = [];
-clientCount = [];
-homeCount = [];
-
-mapData.forEach((project, i) => {
-fundingCount.push(cleandata(project.properties.fundingProgram));
-clientCount.push(cleandata(project.properties.clientsServed));
-homeCount.push(cleandata(project.properties.numHomes));
-})
-
-// Count totals in funds
-fundingCount.forEach(el =>{
-  for(fund in funds){
-    if(fund === el){
-     funds[fund] += 1;
-    }
+  let funds = {
+  "affordablerentalhousing" : 0,
+  "columbiabasintrust" : 0,
+  "communityhousingfund" : 0,
+  "deepeningaffordabilityfund" : 0,
+  "housinghub" : 0,
+  "indigenoushousingfund" : 0,
+  "rapidresponsetohomelessness" : 0,
+  "regionalhousingfirst" : 0,
+  "studenthousingloanprogram" : 0,
+  "supportivehousingfund" : 0,
   }
-})
-// Count totals in funds
-clientCount.forEach(el =>{
-  for(client in clients){
-    if(client === el){
-     clients[client] += 1;
-    }
+  let clients = {
+    "middle-income" : 0,
+    "low-tomoderate-income" : 0,
+    "verylow-income" : 0,
+    "students" : 0,
   }
-})
-// Count totals in funds
-homeCount.forEach(el =>{
-  const val = parseInt(el);
-  if(val <= 20){
-    homes["0-20"] +=1;
-  } 
-  else if(el > 20 && el <= 40){
-    homes["21-40"] +=1;
-  } else if(el > 40 && el <= 60){
-    homes["41-60"] +=1;
-  } else{
-    homes["60+"] +=1;
+  let homes = {
+  "0-20": 0,
+  "21-40": 0,
+  "41-60": 0,
+  "60+": 0,
   }
-})
 
+  let fundingCount = [];
+  let clientCount = [];
+  let homeCount = [];
 
+  mapData.forEach((project, i) => {
+  fundingCount.push(cleandata(project.properties.fundingProgram));
+  clientCount.push(cleandata(project.properties.clientsServed));
+  homeCount.push(cleandata(project.properties.numHomes));
+  })
 
-// Fund Chart
-
-Chart.defaults.color = "white";
-const fundLabels = [
-  'Affordable Rental Housing',
-  'Columbia Basin Trust',
-  'Community Housing Fund',
-  'Deepening Affordability Fund',
-  'HousingHub',
-  'Indigenous Housing Fund',
-  'Rapid Response to Homelessness',
-  'Regional Housing First',
-  'Student Housing Loan Program',
-  'Supportive Housing Fund',
-];
-
-
-const fundData = {
-  labels: fundLabels,
-  datasets: [{
-    label: 'Fund breakdown',
-    backgroundColor: '#fff',
-    backgroundColor: [
-      colors[0],
-      colors[1],
-      colors[2],
-      colors[3],
-      colors[4],
-      colors[5],
-      colors[6],
-      colors[7],
-      colors[8],
-      colors[9],
-
-    ],
-    data: [funds['affordablerentalhousing'], funds['columbiabasintrust'],funds['communityhousingfund'],funds['deepeningaffordabilityfund'],funds['housinghub'],funds['indigenoushousingfund'],funds['rapidresponsetohomelessness'],funds['regionalhousingfirst'],funds['studenthousingloanprogram'],funds['supportivehousingfund'], ],
-  }]
-};
-
-const config = {
-  type: 'doughnut',
-  data: fundData,
-  options: {
-    maintainAspectRatio: false,
-  },
-};
-
-const fundChart = new Chart(
-  document.getElementById('fundChart'),
-  config
-);
-
-
-// Client Chart
-
-const clientLabels = [
-  'Middle-income',
-  'Low- to moderate-income',
-  'Very low-income',
-  'Students',
-];
-
-
-const clientData = {
-  labels: clientLabels,
-  datasets: [{
-    label: 'Fund breakdown',
-    backgroundColor: '#fff',
-    backgroundColor: [
-      colors[0],
-      colors[1],
-      colors[2],
-      colors[3],
-
-    ],
-    data: [clients['middle-income'], clients['low-tomoderate-income'],clients['verylow-income'],clients['students'], ],
-  }]
-};
-
-const clientConfig = {
-  type: 'doughnut',
-  data: clientData,
-  options: {
-    maintainAspectRatio: false,
-  },
-};
-
-const clientChart = new Chart(
-  document.getElementById('clientChart'),
-  clientConfig
-);
-// Num Homes Chart
-
-const homesLabels = [
-  '1-20',
-  '21-40',
-  '41-60',
-  '60+',
-];
-
-
-const homesData = {
-  labels: homesLabels,
-  datasets: [{
-    label: 'Fund breakdown',
-    backgroundColor: '#fff',
-    backgroundColor: [
-      colors[0],
-      colors[1],
-      colors[2],
-      colors[3],
-
-    ],
-    data: [homes['0-20'], homes['21-40'],homes['41-60'],homes['60+'], ],
-  }]
-};
-
-const homesConfig = {
-  type: 'bar',
-  data: homesData,
-  options: {
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        beginAtZero: true
+  // Count totals in funds
+  fundingCount.forEach(el =>{
+    for(fund in funds){
+      if(fund === el){
+      funds[fund] += 1;
       }
     }
-  },
-};
+  })
+  // Count totals in clients
+  clientCount.forEach(el =>{
+    for(client in clients){
+      if(client === el){
+      clients[client] += 1;
+      }
+    }
+  })
+  // Count totals in homes
+  homeCount.forEach(el =>{
+    const val = parseInt(el);
+    if(val <= 20)homes["0-20"] +=1;
+    else if(el > 20 && el <= 40) homes["21-40"] +=1;
+    else if(el > 40 && el <= 60) homes["41-60"] +=1;
+    else homes["60+"] +=1;
+  })
+  buildCharts(funds,clients,homes)
+}
 
-const homesChart = new Chart(
-  document.getElementById('homesChart'),
-  homesConfig
-);
-console.log(fundChart);
+function buildCharts(funds,clients,homes){
+
+
+  Chart.defaults.color = "white";
+  console.log(Chart.overrides["doughnut"].plugins.legend)
+  const fundLabels = [
+    'Affordable Rental Housing',
+    'Columbia Basin Trust',
+    'Community Housing Fund',
+    'Deepening Affordability Fund',
+    'HousingHub',
+    'Indigenous Housing Fund',
+    'Rapid Response to Homelessness',
+    'Regional Housing First',
+    'Student Housing Loan Program',
+    'Supportive Housing Fund',
+  ];
+
+  const clientLabels = [
+    'Middle-income',
+    'Low- to moderate-income',
+    'Very low-income',
+    'Students',
+  ];
+
+
+  const homesLabels = [
+    '1-20 Homes',
+    '21-40 Homes',
+    '41-60 Homes',
+    '60+ Homes',
+  ];
+
+
+  const fundData = {
+    labels: fundLabels,
+    datasets: [{
+      label: 'Fund breakdown',
+      backgroundColor: '#fff',
+      backgroundColor: [
+        colors[0],
+        colors[1],
+        colors[2],
+        colors[3],
+        colors[4],
+        colors[5],
+        colors[6],
+        colors[7],
+        colors[8],
+        colors[9],
+      ],
+      data: [funds['affordablerentalhousing'], funds['columbiabasintrust'],funds['communityhousingfund'],funds['deepeningaffordabilityfund'],funds['housinghub'],funds['indigenoushousingfund'],funds['rapidresponsetohomelessness'],funds['regionalhousingfirst'],funds['studenthousingloanprogram'],funds['supportivehousingfund'], ],
+    }]
+  };
+
+  const clientData = {
+    labels: clientLabels,
+    datasets: [{
+      label: 'Fund breakdown',
+      backgroundColor: '#fff',
+      backgroundColor: [
+        colors[0],
+        colors[1],
+        colors[2],
+        colors[3],
+      ],
+      data: [clients['middle-income'], clients['low-tomoderate-income'],clients['verylow-income'],clients['students'], ],
+    }]
+  };
+
+  const homesData = {
+    labels: homesLabels,
+    datasets: [{
+      backgroundColor: '#fff',
+      backgroundColor: [
+        colors[0],
+        colors[1],
+        colors[2],
+        colors[3],
+      ],
+      data: [homes['0-20'], homes['21-40'],homes['41-60'],homes['60+'], ],
+    }]
+  };
+
+  const fundconfig = {
+    type: 'doughnut',
+    data: fundData,
+    options: {
+      plugins: { legend: { display: false }, },
+     maintainAspectRatio: false,
+   },
+  };
+
+  const clientConfig = {
+    type: 'doughnut',
+    data: clientData,
+    options: {
+       plugins: { legend: { display: false }, },
+      maintainAspectRatio: false,
+    },
+
+  };
+
+  const homesConfig = {
+    type: 'bar',
+    data: homesData,
+    options: {
+      plugins: { legend: { display: false }, },
+      maintainAspectRatio: false,
+      scales: {
+        yAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'probability'
+          }
+        }]
+      }
+    },
+  };
 
 
 
-}) /******   end of data display ********/
+  dataCtn.innerHTML = `
+  
+
+  <div class="chart-ctn">
+  <span class="chart-title">Funding Programs</span>
+  <canvas id="fundChart"></canvas>
+</div>
+<div class="chart-ctn">
+<span class="chart-title">Income Levels</span>
+  <canvas id="clientChart"></canvas>
+  </div>
+  <div class="chart-ctn bar-chart">
+  <span class="chart-title">No. of homes</span>
+  <canvas id="homesChart"></canvas>
+</div>
+`
 
 
+  const fundChart = new Chart(
+    document.getElementById('fundChart'),
+    fundconfig
+  );
 
 
+  const clientChart = new Chart(
+    document.getElementById('clientChart'),
+    clientConfig
+  );
+
+  const homesChart = new Chart(
+    document.getElementById('homesChart'),
+    homesConfig
+  );
+
+}
 
 
+dataBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+   initCharts()
+}) 
 
 
+function initCharts(e){
+  if(e){
+    prepChartData();
+    dataBtnCtn.classList.add("border-highlight")
+
+  }
+  else if(chartControl === true){
+    toggleChartElements()    
+    chartControl = false
+    dataBtnCtn.classList.remove("border-highlight")
+ 
+  } else{
+    toggleChartElements()  
+        dataBtnCtn.classList.add("border-highlight") 
+    chartControl = true 
+    prepChartData();
+  }
+}
+
+function toggleChartElements(){
+  chartControl ? dataCtn.style.display = "none" : dataCtn.style.display = "flex";
+  }
+
+function cleandata(str){
+  return str.toLowerCase().replace(/ /g,'')
+}
 
 
 });
 
 
-
-
-
-// object for change markers image depending on property
-
-// const defaulLayoutObj = {
-//   "icon-image": [
-//     "match",
-//     ["get", "fundingProgram"],
-//     "Affordable Rental Housing",
-//     "house-icon",
-//     // 'Columbia Basin Trust',
-//     // 'red-icon',
-//     // 'Community Housing Fund',
-//     // 'green-icon',
-//     "house-icon",
-//   ],
-//   "icon-size": 0.5,
-//   // "icon-image": "accessible",
-//   "icon-allow-overlap": false,
-// }
